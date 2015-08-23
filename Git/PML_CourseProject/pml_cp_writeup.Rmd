@@ -1,0 +1,60 @@
+---
+title: "PML - Course Project"
+author: "Diana Giraldo"
+date: "08/23/2015"
+output: html_document
+---
+Load the required packages:
+```{r packs, message=FALSE}
+library(dplyr)
+library(caret)
+library(ggplot2)
+library(pander)
+```
+
+Load and convert the data:
+```{r load_data}
+train <- read.table('pml-training.csv', header=TRUE, sep=",")
+test <- read.table('pml-testing.csv', header=TRUE, sep=",")
+train[, 12:159] <- lapply(train[, 12:159], function(x) as.numeric(as.character(x)))
+test[, 12:159] <- lapply(test[, 12:159], function(x) as.numeric(as.character(x)))
+```
+
+### Pre Processing
+Remove variables where the 95% of the values were NA's:
+```{r rmnas}
+rem <- which(colSums(is.na(train)) >= 0.95*nrow(train))
+train <- train[,-rem]
+test <- test[,-rem]
+```
+
+Remove variables with near to zero variance:
+```{r nzv}
+nzv <- nearZeroVar(train[,-60])
+train2 <- train[,-nzv]
+test2 <- test[,-nzv]
+```
+
+### Model Training
+As this is a multi-class classification problem, we can use Decision Trees or Random Forests (RF), I chose RF because in most of the problems their performance is better than Trees.
+```{r modelfit}
+modFit <- train(classe~., data=train2, method="rf")
+pander(modFit)
+```
+
+### Predictions with the model:
+```{r predict}
+pred <- predict(modFit, test2)
+
+```
+
+### Estimation of the out of sample error:
+We perform a K-fold cross-validation:
+
+mod1 <- train(classe~., data=pr, method="rpart")
+mod2 <- train(classe~., data=train2, method="rpart")
+
+
+
+
+
